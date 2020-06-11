@@ -1,0 +1,107 @@
+import tkinter
+from tkinter import messagebox
+
+import requests
+import re #正则表达式
+import os #操作系统
+import time
+from tkinter import *
+import  random
+# mzitu=Tk(className="爬妹子图")
+# text=Text(width=50,height=30)
+# btn=Button()
+# btn['text']="开始下载"
+# text.pack()
+# btn.pack()
+
+'''''
+请求网页 https://www.mzitu.com/232558
+'''''
+
+def on_click():
+    temp = xls_text.get()
+    if len(temp)>10:
+        print(temp)
+        image_header=temp.split('/')[-1]
+    else:
+        image_header=temp
+
+    global i
+    i = 0
+    while True:
+        #print(f"{i}i的值")
+        # time.sleep(1)
+        i+=1
+        headers={
+        'Referer': f'https://www.mzitu.com/{image_header}/{i}',
+        'User-Agent': f'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/{random.randint(0,999)}.{random.randint(0,9999)}.{random.randint(0,9999)}.{random.randint(0,999)} Safari/537.36',
+      #   'User-Agent': 'Mozilla / 5.0(iPhone;CPU iPhone OS 7_1_2 like Mac OS X) App leWebKit / 537.51.2(KHTML,likeGecko) Version / 7.0 Mobile/ 11 D257 Safari / 9537.53'
+        }#请求头,里面的是身份~
+
+        response=requests.get(f'https://www.mzitu.com/{image_header}/{i}',headers=headers)
+        #print(response.text)
+        html=response.text
+        print(html)
+
+        '''''
+        解析网页 
+        '''''
+        try:
+            dir_name=re.findall('''href=".*?" ><img src=".*?" alt="(.*?)"''',html)[-1]
+            print(dir_name)
+        except IndexError as e:
+            print(e)
+            print('*'*20+"下载完毕"+'*'*20)
+            messagebox.showinfo(title='绅士', message="下载完毕")
+            break
+        '''''
+        如果文件夹不存在，就创建一个文件夹
+        '''''
+        if not os.path.exists(dir_name):
+            os.mkdir(dir_name)
+
+        urls=re.findall('href=".*?" ><img src="(.*?)" alt=".*?"',html)
+        print(urls)
+        print(dir_name)
+
+        '''''
+        保存图片
+        '''''
+        time.sleep(5)
+        headers={
+        'Referer':f'https://www.mzitu.com/{image_header}/{i}',
+        'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/{random.randint(0,999)}.{random.randint(0,9999)}.{random.randint(0,9999)}.{random.randint(0,999)} Safari/537.36'
+        }#请求头,里面的是身份~
+        for url in urls:
+            # time.sleep(1)
+            #图片的名字
+            file_name=url.split('/')[-1]
+            response=requests.get(url,headers=headers)
+            with open(dir_name+'/'+file_name,'wb') as f:
+                f.write(response.content)
+                f.close()
+
+#*******************************************************************************************************************
+root = tkinter.Tk()
+root.title("爬图-发财致富集团的绅士们专属")
+root.geometry('400x100')#是x 不是*
+
+l1 = Label(root, text="请输入编号如（232558）或者网址https://www.mzitu.com/232558：",height=2)
+l1.pack()#这里的side可以赋值为LEFT  RTGHT TOP  BOTTOM
+
+xls_text = StringVar()
+xls = Entry(root, textvariable = xls_text,)#输入框
+xls.pack()
+# xls.place(relx=0.1, rely=0.4, relwidth=1, relheight=0.4)
+
+# var=tkinter.StringVar()
+# l2 = tkinter.Label(root, textvariable=var)
+# l2.pack()#这里的side可以赋值为LEFT  RTGHT TOP  BOTTOM
+
+b1=Button(root, text="start", command = on_click,width=100,height=8)
+b1.pack()
+# b1.place(relx=0.1, rely=0.4, relwidth=1, relheight=0.4)
+
+
+root.mainloop()
+
